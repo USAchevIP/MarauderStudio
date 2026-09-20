@@ -1,0 +1,163 @@
+<Page x:Class="MarauderStudio.Views.DashboardView"
+      xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      xmlns:ui="http://schemas.modernwpf.com/2019"
+      xmlns:loc="clr-namespace:MarauderStudio.Localization"
+      xmlns:vm="clr-namespace:MarauderStudio.ViewModels"
+      Title="{loc:LocalizedString Nav.Dashboard}">
+
+    <Page.DataContext>
+        <vm:DashboardViewModel/>
+    </Page.DataContext>
+
+    <Grid Margin="24">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <Border Grid.Row="0" CornerRadius="16" Padding="24" Margin="0,0,0,16"
+                Background="{DynamicResource SystemControlAcrylicElementBrush}">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+
+                <Border Width="72" Height="72" CornerRadius="16"
+                        Background="{StaticResource MarauderOrangeBrush}"
+                        VerticalAlignment="Center">
+                    <Border.Style>
+                        <Style TargetType="Border">
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding IsConnected}" Value="True">
+                                    <Setter Property="Background" Value="{StaticResource MarauderAcidGreenBrush}"/>
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </Border.Style>
+                    <TextBlock Text="M" FontSize="36" FontWeight="Bold"
+                               Foreground="Black"
+                               HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                </Border>
+
+                <StackPanel Grid.Column="1" Margin="20,0,0,0" VerticalAlignment="Center">
+                    <TextBlock Text="{loc:LocalizedString App.Title}"
+                               FontSize="22" FontWeight="SemiBold"/>
+                    <TextBlock Text="{Binding StatusMessage}"
+                               Opacity="0.7" Margin="0,4,0,0"/>
+                </StackPanel>
+
+                <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
+                    <ComboBox x:Name="PortCombo" Width="160" Margin="0,0,12,0"
+                              ItemsSource="{Binding AvailablePorts}"
+                              SelectedItem="{Binding SelectedPort}"
+                              DisplayMemberPath="DisplayLabel"/>
+                    <Button Command="{Binding RefreshPortsCommand}"
+                            ToolTip="{loc:LocalizedString Dashboard.Refresh}"
+                            Padding="8" Margin="0,0,8,0">
+                        <ui:SymbolIcon Symbol="Refresh"/>
+                    </Button>
+                    <Button Style="{StaticResource AccentButtonStyle}"
+                            Command="{Binding ConnectCommand}"
+                            Padding="16,8">
+                        <StackPanel Orientation="Horizontal">
+                            <ui:SymbolIcon Symbol="Connect" Margin="0,0,8,0"/>
+                            <TextBlock Text="{loc:LocalizedString Dashboard.Connect}"/>
+                        </StackPanel>
+                    </Button>
+                    <Button Command="{Binding DisconnectCommand}"
+                            Visibility="{Binding IsConnected, Converter={StaticResource BoolToVis}}"
+                            Margin="8,0,0,0" Padding="16,8">
+                        <StackPanel Orientation="Horizontal">
+                            <ui:SymbolIcon Symbol="Disconnect" Margin="0,0,8,0"/>
+                            <TextBlock Text="Отключить"/>
+                        </StackPanel>
+                    </Button>
+                </StackPanel>
+            </Grid>
+        </Border>
+
+        <Grid Grid.Row="1">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="*"/>
+            </Grid.RowDefinitions>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+
+            <Border Grid.Row="0" Grid.Column="0" CornerRadius="12" Padding="20" Margin="0,0,12,12"
+                    Background="{DynamicResource SystemControlAcrylicElementBrush}">
+                <StackPanel>
+                    <StackPanel Orientation="Horizontal" Margin="0,0,0,12">
+                        <ui:SymbolIcon Symbol="Document" Margin="0,0,8,0"/>
+                        <TextBlock Text="{loc:LocalizedString Dashboard.Version}" FontSize="14" FontWeight="SemiBold"/>
+                    </StackPanel>
+                    <TextBlock Text="{Binding FirmwareVersion}" FontSize="20" FontWeight="SemiBold"/>
+                    <TextBlock Text="{Binding Hardware}" Opacity="0.7" Margin="0,4,0,0"/>
+                </StackPanel>
+            </Border>
+
+            <Border Grid.Row="0" Grid.Column="1" CornerRadius="12" Padding="20" Margin="6,0,6,12"
+                    Background="{DynamicResource SystemControlAcrylicElementBrush}">
+                <StackPanel>
+                    <StackPanel Orientation="Horizontal" Margin="0,0,0,12">
+                        <ui:SymbolIcon Symbol="Chip" Margin="0,0,8,0"/>
+                        <TextBlock Text="{loc:LocalizedString Dashboard.Chip}" FontSize="14" FontWeight="SemiBold"/>
+                    </StackPanel>
+                    <TextBlock Text="{Binding ChipName}" FontSize="20" FontWeight="SemiBold"/>
+                    <TextBlock Text="{Binding EspIdfVersion}" Opacity="0.7" FontSize="12" Margin="0,4,0,0"/>
+                </StackPanel>
+            </Border>
+
+            <Border Grid.Row="0" Grid.Column="2" CornerRadius="12" Padding="20" Margin="12,0,0,12"
+                    Background="{DynamicResource SystemControlAcrylicElementBrush}">
+                <StackPanel>
+                    <StackPanel Orientation="Horizontal" Margin="0,0,0,12">
+                        <ui:SymbolIcon Symbol="Folder" Margin="0,0,8,0"/>
+                        <TextBlock Text="{loc:LocalizedString Dashboard.SdCard}" FontSize="14" FontWeight="SemiBold"/>
+                    </StackPanel>
+                    <TextBlock Text="{Binding SdCard}" FontSize="16" FontWeight="SemiBold"/>
+                    <TextBlock Text="{Binding Battery}" Opacity="0.7" Margin="0,4,0,0"/>
+                </StackPanel>
+            </Border>
+
+            <Border Grid.Row="1" Grid.Column="0" CornerRadius="12" Padding="20" Margin="0,6,12,0"
+                    Background="{DynamicResource SystemControlAcrylicElementBrush}">
+                <StackPanel>
+                    <StackPanel Orientation="Horizontal" Margin="0,0,0,12">
+                        <ui:SymbolIcon Symbol="Permissions" Margin="0,0,8,0"/>
+                        <TextBlock Text="{loc:LocalizedString Dashboard.Mac}" FontSize="14" FontWeight="SemiBold"/>
+                    </StackPanel>
+                    <TextBlock Text="Station" Opacity="0.6" FontSize="11"/>
+                    <TextBlock Text="{Binding StationMac}" FontFamily="{StaticResource MonoFont}" FontSize="13"/>
+                    <TextBlock Text="AP" Opacity="0.6" FontSize="11" Margin="0,8,0,0"/>
+                    <TextBlock Text="{Binding ApMac}" FontFamily="{StaticResource MonoFont}" FontSize="13"/>
+                </StackPanel>
+            </Border>
+
+            <Border Grid.Row="1" Grid.Column="1" Grid.ColumnSpan="2" CornerRadius="12" Padding="20" Margin="6,6,0,0"
+                    Background="{DynamicResource SystemControlAcrylicElementBrush}">
+                <StackPanel>
+                    <StackPanel Orientation="Horizontal" Margin="0,0,0,12">
+                        <ui:SymbolIcon Symbol="Find" Margin="0,0,8,0"/>
+                        <TextBlock Text="Быстрые действия" FontSize="14" FontWeight="SemiBold"/>
+                    </StackPanel>
+                    <StackPanel Orientation="Horizontal">
+                        <Button Command="{Binding RefreshInfoCommand}" Margin="0,0,8,0" Padding="14,6">
+                            <StackPanel Orientation="Horizontal">
+                                <ui:SymbolIcon Symbol="Refresh" Margin="0,0,6,0"/>
+                                <TextBlock Text="{loc:LocalizedString Dashboard.RefreshInfo}"/>
+                            </StackPanel>
+                        </Button>
+                    </StackPanel>
+                    <TextBlock Text="{Binding StatusMessage}" Opacity="0.6" FontSize="11" Margin="0,12,0,0"/>
+                </StackPanel>
+            </Border>
+        </Grid>
+    </Grid>
+</Page>

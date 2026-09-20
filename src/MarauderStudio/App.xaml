@@ -1,0 +1,36 @@
+<Application x:Class="MarauderStudio.App"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:ui="http://schemas.modernwpf.com/2019"
+             xmlns:conv="clr-namespace:MarauderStudio.Converters">
+    <Application.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ui:ThemeResources/>
+                <ui:XamlControlsResources/>
+            </ResourceDictionary.MergedDictionaries>
+
+            <conv:BoolToVisibilityConverter x:Key="BoolToVis"/>
+            <conv:InverseBoolConverter x:Key="InverseBool"/>
+            <conv:BytesToHumanConverter x:Key="BytesHuman"/>
+            <conv:NullToBoolConverter x:Key="NotNull"/>
+            <conv:EnumToIntConverter x:Key="EnumToInt"/>
+            <conv:LevelToBrushConverter x:Key="LevelToBrush"/>
+
+            <!-- Палитра Marauder -->
+            <Color x:Key="MarauderOrangeColor">#FFFF8C42</Color>
+            <Color x:Key="MarauderAcidGreenColor">#FF39FF14</Color>
+            <Color x:Key="MarauderRedColor">#FFFF3B30</Color>
+            <Color x:Key="MarauderBlueColor">#FF0A84FF</Color>
+
+            <SolidColorBrush x:Key="MarauderOrangeBrush" Color="{StaticResource MarauderOrangeColor}"/>
+            <SolidColorBrush x:Key="MarauderAcidGreenBrush" Color="{StaticResource MarauderAcidGreenColor}"/>
+            <SolidColorBrush x:Key="MarauderRedBrush" Color="{StaticResource MarauderRedColor}"/>
+            <SolidColorBrush x:Key="MarauderBlueBrush" Color="{StaticResource MarauderBlueColor}"/>
+
+            <!-- Шрифты -->
+            <FontFamily x:Key="MonoFont">Cascadia Code, Consolas, Courier New</FontFamily>
+            <FontFamily x:Key="UiFont">Segoe UI Variable, Segoe UI</FontFamily>
+        </ResourceDictionary>
+    </Application.Resources>
+</Application>

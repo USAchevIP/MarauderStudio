@@ -1,0 +1,106 @@
+<Page x:Class="MarauderStudio.Views.MonitorView"
+      xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      xmlns:ui="http://schemas.modernwpf.com/2019"
+      xmlns:loc="clr-namespace:MarauderStudio.Localization"
+      xmlns:vm="clr-namespace:MarauderStudio.ViewModels"
+      Title="{loc:LocalizedString Nav.Monitor}">
+
+    <Page.DataContext>
+        <vm:MonitorViewModel/>
+    </Page.DataContext>
+
+    <Grid Margin="24">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <Grid Margin="0,0,0,12">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+            <StackPanel Orientation="Horizontal">
+                <TextBlock Text="{loc:LocalizedString Nav.Monitor}" FontSize="28" FontWeight="SemiBold"/>
+                <TextBlock Text="{Binding Status}" Margin="16,8,0,0" Opacity="0.7"/>
+            </StackPanel>
+            <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                <Button Command="{Binding ConnectCommand}" Margin="0,0,8,0" Padding="14,6"
+                        Visibility="{Binding IsConnected, Converter={StaticResource InverseBool}}">
+                    <StackPanel Orientation="Horizontal">
+                        <ui:SymbolIcon Symbol="Connect" Margin="0,0,6,0"/>
+                        <TextBlock Text="Подключить"/>
+                    </StackPanel>
+                </Button>
+                <Button Command="{Binding DisconnectCommand}" Margin="0,0,8,0" Padding="14,6"
+                        Visibility="{Binding IsConnected, Converter={StaticResource BoolToVis}}">
+                    <StackPanel Orientation="Horizontal">
+                        <ui:SymbolIcon Symbol="Disconnect" Margin="0,0,6,0"/>
+                        <TextBlock Text="Отключить"/>
+                    </StackPanel>
+                </Button>
+            </StackPanel>
+        </Grid>
+
+        <Border Grid.Row="1" CornerRadius="12" Padding="0"
+                Background="#0D1117" BorderBrush="#22FFFFFF" BorderThickness="1">
+            <ListBox x:Name="RxList" ItemsSource="{Binding Lines}" Background="Transparent" BorderThickness="0"
+                     Padding="14" FontFamily="{StaticResource MonoFont}" FontSize="12"
+                     Foreground="#E6E6E6" ScrollViewer.HorizontalScrollBarVisibility="Auto">
+                <ListBox.ItemContainerStyle>
+                    <Style TargetType="ListBoxItem">
+                        <Setter Property="Background" Value="Transparent"/>
+                        <Setter Property="Padding" Value="0,2"/>
+                    </Style>
+                </ListBox.ItemContainerStyle>
+                <ListBox.ItemTemplate>
+                    <DataTemplate>
+                        <TextBlock Text="{Binding Display}"/>
+                    </DataTemplate>
+                </ListBox.ItemTemplate>
+            </ListBox>
+        </Border>
+
+        <Border Grid.Row="2" CornerRadius="12" Padding="12" Margin="0,12,0,0"
+                Background="{DynamicResource SystemControlAcrylicElementBrush}">
+            <StackPanel>
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+                    <TextBlock VerticalAlignment="Center" FontFamily="{StaticResource MonoFont}" Opacity="0.6" Margin="0,0,8,0">Marauder&gt;</TextBlock>
+                    <TextBox Grid.Column="1" x:Name="InputBox"
+                             Text="{Binding Input, UpdateSourceTrigger=PropertyChanged}"
+                             KeyDown="InputBox_OnKeyDown"
+                             FontFamily="{StaticResource MonoFont}"
+                             BorderThickness="0" Background="Transparent"/>
+                    <Button Grid.Column="2" Style="{StaticResource AccentButtonStyle}"
+                            Command="{Binding SendCommand}" Padding="14,4" Margin="8,0,0,0">
+                        <StackPanel Orientation="Horizontal">
+                            <ui:SymbolIcon Symbol="Send" Margin="0,0,6,0"/>
+                            <TextBlock Text="{loc:LocalizedString Monitor.Send}"/>
+                        </StackPanel>
+                    </Button>
+                </Grid>
+                <StackPanel Orientation="Horizontal" Margin="0,8,0,0">
+                    <Button Command="{Binding SendQuickCommand}" CommandParameter="info"      Margin="0,0,6,0" Padding="10,4">info</Button>
+                    <Button Command="{Binding SendQuickCommand}" CommandParameter="scanap"    Margin="0,0,6,0" Padding="10,4">scanap</Button>
+                    <Button Command="{Binding SendQuickCommand}" CommandParameter="scansta"   Margin="0,0,6,0" Padding="10,4">scansta</Button>
+                    <Button Command="{Binding SendQuickCommand}" CommandParameter="stopscan"  Margin="0,0,6,0" Padding="10,4">stopscan</Button>
+                    <Button Command="{Binding SendQuickCommand}" CommandParameter="settings"  Margin="0,0,6,0" Padding="10,4">settings</Button>
+                    <Button Command="{Binding SendQuickCommand}" CommandParameter="reboot"    Margin="0,0,6,0" Padding="10,4">reboot</Button>
+                    <Button Command="{Binding ClearCommand}" Margin="12,0,0,0" Padding="10,4">
+                        <StackPanel Orientation="Horizontal">
+                            <ui:SymbolIcon Symbol="Clear" Margin="0,0,6,0"/>
+                            <TextBlock Text="{loc:LocalizedString Monitor.Clear}"/>
+                        </StackPanel>
+                    </Button>
+                </StackPanel>
+            </StackPanel>
+        </Border>
+    </Grid>
+</Page>

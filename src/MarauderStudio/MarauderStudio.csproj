@@ -1,0 +1,36 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <ItemGroup>
+    <ProjectReference Include="..\MarauderStudio.Core\MarauderStudio.Core.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="CommunityToolkit.Mvvm" Version="8.3.2" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="9.0.0" />
+    <PackageReference Include="ModernWpfUI" Version="0.9.6" />
+  </ItemGroup>
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net9.0-windows</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <UseWPF>true</UseWPF>
+    <LangVersion>latest</LangVersion>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
+    <AssemblyName>MarauderStudio</AssemblyName>
+    <RootNamespace>MarauderStudio</RootNamespace>
+    <Version>1.0.0</Version>
+    <Company>Ukiterus</Company>
+    <Product>Marauder Studio</Product>
+    <Description>Управление и прошивка ESP32 Marauder</Description>
+    <Copyright>© 2026</Copyright>
+    <NeutralLanguage>ru-RU</NeutralLanguage>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Resource Include="Resources\Icons\**\*" />
+    <Resource Include="Resources\Localization\*.json" />
+  </ItemGroup>
+
+</Project>

@@ -1,0 +1,170 @@
+<Page x:Class="MarauderStudio.Views.DeviceView"
+      xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      xmlns:ui="http://schemas.modernwpf.com/2019"
+      xmlns:loc="clr-namespace:MarauderStudio.Localization"
+      xmlns:vm="clr-namespace:MarauderStudio.ViewModels"
+      Title="{loc:LocalizedString Nav.Device}">
+
+    <Page.DataContext>
+        <vm:DeviceViewModel/>
+    </Page.DataContext>
+
+    <Grid Margin="24">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <TextBlock Text="{loc:LocalizedString Nav.Device}"
+                   FontSize="28" FontWeight="SemiBold" Margin="0,0,0,16"/>
+
+        <ScrollViewer Grid.Row="1">
+            <StackPanel MaxWidth="1100" HorizontalAlignment="Left">
+                <TextBlock Text="Последняя команда:" Opacity="0.6" Margin="0,0,0,4"/>
+                <TextBlock Text="{Binding LastCommand}" FontFamily="{StaticResource MonoFont}"
+                           Background="#22FFFFFF" Padding="10,6" Margin="0,0,0,16"/>
+
+                <Border CornerRadius="12" Padding="16" Margin="0,0,0,12"
+                        Background="{DynamicResource SystemControlAcrylicElementBrush}">
+                    <StackPanel>
+                        <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
+                            <ui:SymbolIcon Symbol="Globe" Margin="0,0,8,0"/>
+                            <TextBlock Text="{loc:LocalizedString Device.Tab.Wifi}" FontSize="14" FontWeight="SemiBold"/>
+                        </StackPanel>
+                        <ItemsControl ItemsSource="{Binding WifiPresets}">
+                            <ItemsControl.ItemsPanel>
+                                <ItemsPanelTemplate>
+                                    <WrapPanel/>
+                                </ItemsPanelTemplate>
+                            </ItemsControl.ItemsPanel>
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate DataType="{x:Type vm:CommandPreset}">
+                                    <Button Margin="0,0,8,8" Padding="14,8" Click="Preset_OnClick">
+                                        <StackPanel>
+                                            <TextBlock Text="{Binding Title}" FontWeight="SemiBold"/>
+                                            <TextBlock Text="{Binding Command}" Opacity="0.6" FontSize="11"
+                                                       FontFamily="{StaticResource MonoFont}"/>
+                                        </StackPanel>
+                                    </Button>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </StackPanel>
+                </Border>
+
+                <Border CornerRadius="12" Padding="16" Margin="0,0,0,12"
+                        Background="{DynamicResource SystemControlAcrylicElementBrush}">
+                    <StackPanel>
+                        <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
+                            <ui:SymbolIcon Symbol="Important" Margin="0,0,8,0"/>
+                            <TextBlock Text="{loc:LocalizedString Device.Tab.Attack}" FontSize="14" FontWeight="SemiBold"/>
+                        </StackPanel>
+                        <ItemsControl ItemsSource="{Binding AttackPresets}">
+                            <ItemsControl.ItemsPanel>
+                                <ItemsPanelTemplate>
+                                    <WrapPanel/>
+                                </ItemsPanelTemplate>
+                            </ItemsControl.ItemsPanel>
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate DataType="{x:Type vm:CommandPreset}">
+                                    <Button Margin="0,0,8,8" Padding="14,8" Click="Preset_OnClick">
+                                        <StackPanel>
+                                            <TextBlock Text="{Binding Title}" FontWeight="SemiBold"/>
+                                            <TextBlock Text="{Binding Command}" Opacity="0.6" FontSize="11"
+                                                       FontFamily="{StaticResource MonoFont}"/>
+                                        </StackPanel>
+                                    </Button>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </StackPanel>
+                </Border>
+
+                <Border CornerRadius="12" Padding="16" Margin="0,0,0,12"
+                        Background="{DynamicResource SystemControlAcrylicElementBrush}">
+                    <StackPanel>
+                        <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
+                            <ui:SymbolIcon Symbol="Find" Margin="0,0,8,0"/>
+                            <TextBlock Text="{loc:LocalizedString Device.Tab.Sniff}" FontSize="14" FontWeight="SemiBold"/>
+                        </StackPanel>
+                        <ItemsControl ItemsSource="{Binding SniffPresets}">
+                            <ItemsControl.ItemsPanel>
+                                <ItemsPanelTemplate>
+                                    <WrapPanel/>
+                                </ItemsPanelTemplate>
+                            </ItemsControl.ItemsPanel>
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate DataType="{x:Type vm:CommandPreset}">
+                                    <Button Margin="0,0,8,8" Padding="14,8" Click="Preset_OnClick">
+                                        <StackPanel>
+                                            <TextBlock Text="{Binding Title}" FontWeight="SemiBold"/>
+                                            <TextBlock Text="{Binding Command}" Opacity="0.6" FontSize="11"
+                                                       FontFamily="{StaticResource MonoFont}"/>
+                                        </StackPanel>
+                                    </Button>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </StackPanel>
+                </Border>
+
+                <Border CornerRadius="12" Padding="16" Margin="0,0,0,12"
+                        Background="{DynamicResource SystemControlAcrylicElementBrush}">
+                    <StackPanel>
+                        <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
+                            <ui:SymbolIcon Symbol="CellPhone" Margin="0,0,8,0"/>
+                            <TextBlock Text="{loc:LocalizedString Device.Tab.Bt}" FontSize="14" FontWeight="SemiBold"/>
+                        </StackPanel>
+                        <ItemsControl ItemsSource="{Binding BtPresets}">
+                            <ItemsControl.ItemsPanel>
+                                <ItemsPanelTemplate>
+                                    <WrapPanel/>
+                                </ItemsPanelTemplate>
+                            </ItemsControl.ItemsPanel>
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate DataType="{x:Type vm:CommandPreset}">
+                                    <Button Margin="0,0,8,8" Padding="14,8" Click="Preset_OnClick">
+                                        <StackPanel>
+                                            <TextBlock Text="{Binding Title}" FontWeight="SemiBold"/>
+                                            <TextBlock Text="{Binding Command}" Opacity="0.6" FontSize="11"
+                                                       FontFamily="{StaticResource MonoFont}"/>
+                                        </StackPanel>
+                                    </Button>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </StackPanel>
+                </Border>
+
+                <Border CornerRadius="12" Padding="16" Margin="0,0,0,12"
+                        Background="{DynamicResource SystemControlAcrylicElementBrush}">
+                    <StackPanel>
+                        <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
+                            <ui:SymbolIcon Symbol="Map" Margin="0,0,8,0"/>
+                            <TextBlock Text="{loc:LocalizedString Device.Tab.Gps}" FontSize="14" FontWeight="SemiBold"/>
+                        </StackPanel>
+                        <ItemsControl ItemsSource="{Binding GpsPresets}">
+                            <ItemsControl.ItemsPanel>
+                                <ItemsPanelTemplate>
+                                    <WrapPanel/>
+                                </ItemsPanelTemplate>
+                            </ItemsControl.ItemsPanel>
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate DataType="{x:Type vm:CommandPreset}">
+                                    <Button Margin="0,0,8,8" Padding="14,8" Click="Preset_OnClick">
+                                        <StackPanel>
+                                            <TextBlock Text="{Binding Title}" FontWeight="SemiBold"/>
+                                            <TextBlock Text="{Binding Command}" Opacity="0.6" FontSize="11"
+                                                       FontFamily="{StaticResource MonoFont}"/>
+                                        </StackPanel>
+                                    </Button>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </StackPanel>
+                </Border>
+            </StackPanel>
+        </ScrollViewer>
+    </Grid>
+</Page>

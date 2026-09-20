@@ -1,0 +1,101 @@
+<Window x:Class="MarauderStudio.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:ui="http://schemas.modernwpf.com/2019"
+        xmlns:views="clr-namespace:MarauderStudio.Views"
+        xmlns:loc="clr-namespace:MarauderStudio.Localization"
+        Title="{loc:LocalizedString App.Title}"
+        Height="780" Width="1280"
+        MinHeight="640" MinWidth="1024"
+        ui:WindowHelper.UseModernWindowStyle="True"
+        WindowStartupLocation="CenterScreen"
+        Background="{DynamicResource ApplicationPageBackgroundThemeBrush}"
+        FontFamily="{StaticResource UiFont}"
+        TextOptions.TextFormattingMode="Display">
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <!-- Кастомный заголовок-панель -->
+        <Border Grid.Row="0" Padding="20,16" Background="{DynamicResource SystemControlAcrylicElementBrush}">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+
+                <StackPanel Orientation="Horizontal" Grid.Column="0">
+                    <Border Width="36" Height="36" CornerRadius="8"
+                            Background="{StaticResource MarauderOrangeBrush}"
+                            VerticalAlignment="Center">
+                        <TextBlock Text="M" FontSize="20" FontWeight="Bold"
+                                   Foreground="Black" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    </Border>
+                    <StackPanel Margin="14,0,0,0" VerticalAlignment="Center">
+                        <TextBlock Text="{loc:LocalizedString App.Title}" FontSize="18" FontWeight="SemiBold"/>
+                        <TextBlock Text="{loc:LocalizedString App.Subtitle}" FontSize="11"
+                                   Opacity="0.6"/>
+                    </StackPanel>
+                </StackPanel>
+
+                <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
+                    <TextBlock x:Name="DeviceStatusText" VerticalAlignment="Center" Margin="0,0,12,0"
+                               Text="{loc:LocalizedString Dashboard.Disconnected}"
+                               Foreground="{StaticResource MarauderRedBrush}"
+                               FontSize="12"/>
+                    <Ellipse x:Name="DeviceIndicator" Width="10" Height="10"
+                             Fill="{StaticResource MarauderRedBrush}" VerticalAlignment="Center"/>
+                </StackPanel>
+            </Grid>
+        </Border>
+
+        <!-- Навигация и контент -->
+        <ui:NavigationView x:Name="NavView"
+                           Grid.Row="1"
+                           PaneDisplayMode="Left"
+                           IsBackButtonVisible="Collapsed"
+                           IsSettingsVisible="False"
+                           OpenPaneLength="220"
+                           SelectionChanged="NavView_OnSelectionChanged">
+
+            <ui:NavigationView.MenuItems>
+                <ui:NavigationViewItem Content="{loc:LocalizedString Nav.Dashboard}" Tag="dashboard">
+                    <ui:NavigationViewItem.Icon>
+                        <ui:SymbolIcon Symbol="Home"/>
+                    </ui:NavigationViewItem.Icon>
+                </ui:NavigationViewItem>
+                <ui:NavigationViewItem Content="{loc:LocalizedString Nav.Flasher}" Tag="flasher">
+                    <ui:NavigationViewItem.Icon>
+                        <ui:SymbolIcon Symbol="Download"/>
+                    </ui:NavigationViewItem.Icon>
+                </ui:NavigationViewItem>
+                <ui:NavigationViewItem Content="{loc:LocalizedString Nav.Monitor}" Tag="monitor">
+                    <ui:NavigationViewItem.Icon>
+                        <ui:SymbolIcon Symbol="AllApps"/>
+                    </ui:NavigationViewItem.Icon>
+                </ui:NavigationViewItem>
+                <ui:NavigationViewItem Content="{loc:LocalizedString Nav.Device}" Tag="device">
+                    <ui:NavigationViewItem.Icon>
+                        <ui:SymbolIcon Symbol="CellPhone"/>
+                    </ui:NavigationViewItem.Icon>
+                </ui:NavigationViewItem>
+                <ui:NavigationViewItem Content="{loc:LocalizedString Nav.Settings}" Tag="settings">
+                    <ui:NavigationViewItem.Icon>
+                        <ui:SymbolIcon Symbol="Setting"/>
+                    </ui:NavigationViewItem.Icon>
+                </ui:NavigationViewItem>
+                <ui:NavigationViewItem Content="{loc:LocalizedString Nav.About}" Tag="about">
+                    <ui:NavigationViewItem.Icon>
+                        <ui:SymbolIcon Symbol="Help"/>
+                    </ui:NavigationViewItem.Icon>
+                </ui:NavigationViewItem>
+            </ui:NavigationView.MenuItems>
+
+            <Frame x:Name="ContentFrame" Padding="0"/>
+        </ui:NavigationView>
+    </Grid>
+</Window>

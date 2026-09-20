@@ -1,0 +1,52 @@
+# Build artifacts
+bin/
+obj/
+out/
+*.user
+*.suo
+*.userprefs
+
+# IDE
+.vs/
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Logs
+*.log
+logs/
+
+# Test results
+TestResults/
+coverage/
+*.coverage
+*.coveragexml
+
+# .NET
+*.dll
+!src/**/bin/**/MarauderStudio.exe
+*.pdb
+*.deps.json
+*.runtimeconfig.json
+
+# Publish output
+publish/
+self-contained/
+
+# Bundled esptool
+src/MarauderStudio/Resources/esptool/
+
+# User settings
+appsettings.local.json
+*.local.json
+
+# Downloads
+downloads/
+*.bin
+!tests/**/*.bin

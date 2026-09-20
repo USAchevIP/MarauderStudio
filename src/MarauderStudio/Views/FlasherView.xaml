@@ -1,0 +1,230 @@
+<Page x:Class="MarauderStudio.Views.FlasherView"
+      xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      xmlns:ui="http://schemas.modernwpf.com/2019"
+      xmlns:loc="clr-namespace:MarauderStudio.Localization"
+      xmlns:vm="clr-namespace:MarauderStudio.ViewModels"
+      xmlns:core="clr-namespace:MarauderStudio.Core.Firmware;assembly=MarauderStudio.Core"
+      Title="{loc:LocalizedString Nav.Flasher}">
+
+    <Grid Margin="24">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <TextBlock Text="{loc:LocalizedString Nav.Flasher}"
+                   FontSize="28" FontWeight="SemiBold" Margin="0,0,0,16"/>
+
+        <Grid Grid.Row="1">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+            </Grid.RowDefinitions>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="2*"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+
+            <Border Grid.Row="0" Grid.ColumnSpan="2" CornerRadius="12" Padding="16" Margin="0,0,0,12"
+                    Background="{DynamicResource SystemControlAcrylicElementBrush}">
+                <StackPanel>
+                    <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
+                        <ui:SymbolIcon Symbol="Document" Margin="0,0,8,0"/>
+                        <TextBlock Text="Источник прошивки" FontSize="14" FontWeight="SemiBold"/>
+                    </StackPanel>
+
+                    <TabControl SelectedIndex="{Binding SourceTabIndex, Mode=TwoWay}" Margin="0,8,0,0">
+
+                        <TabItem Header="{loc:LocalizedString Flasher.Source.File}">
+                            <Border x:Name="DropZone" Margin="8" Padding="20" CornerRadius="8"
+                                    Background="{DynamicResource SystemControlBackgroundAltMediumBrush}"
+                                    BorderBrush="{DynamicResource SystemControlForegroundBaseLowBrush}"
+                                    BorderThickness="2"
+                                    AllowDrop="True"
+                                    DragEnter="DropZone_OnDragOver"
+                                    DragOver="DropZone_OnDragOver"
+                                    Drop="DropZone_OnDrop">
+                                <StackPanel HorizontalAlignment="Center">
+                                    <ui:SymbolIcon Symbol="Download" Width="48" Height="48" Opacity="0.5"/>
+                                    <TextBlock Text="{loc:LocalizedString Flasher.DropFileHere}"
+                                               HorizontalAlignment="Center"
+                                               Opacity="0.7" Margin="0,8,0,12"/>
+                                    <Button Click="BrowseButton_OnClick" Padding="16,6">
+                                        <StackPanel Orientation="Horizontal">
+                                            <ui:SymbolIcon Symbol="Folder" Margin="0,0,6,0"/>
+                                            <TextBlock Text="{loc:LocalizedString Flasher.Browse}"/>
+                                        </StackPanel>
+                                    </Button>
+                                    <TextBlock Text="{Binding FilePath}" Opacity="0.6" FontFamily="{StaticResource MonoFont}"
+                                               TextTrimming="CharacterEllipsis" MaxWidth="500"
+                                               Margin="0,12,0,0" HorizontalAlignment="Center"/>
+                                </StackPanel>
+                            </Border>
+                        </TabItem>
+
+                        <TabItem Header="{loc:LocalizedString Flasher.Source.GitHub}">
+                            <Grid Margin="8">
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="*"/>
+                                    <RowDefinition Height="Auto"/>
+                                </Grid.RowDefinitions>
+                                <StackPanel Orientation="Horizontal" Margin="0,4,0,8">
+                                    <Button Command="{Binding LoadReleasesCommand}" Padding="12,4">
+                                        <StackPanel Orientation="Horizontal">
+                                            <ui:SymbolIcon Symbol="Refresh" Margin="0,0,6,0"/>
+                                            <TextBlock Text="Загрузить релизы"/>
+                                        </StackPanel>
+                                    </Button>
+                                    <ComboBox ItemsSource="{Binding Releases}" SelectedItem="{Binding SelectedRelease}"
+                                              DisplayMemberPath="DisplayVersion" Width="180" Margin="8,0,0,0"/>
+                                </StackPanel>
+                                <TextBlock Grid.Row="1" Text="Бинарник:" Margin="0,0,0,4"/>
+                                <ListBox Grid.Row="2" ItemsSource="{Binding AvailableAssets}"
+                                         SelectedItem="{Binding SelectedAsset}" MaxHeight="180">
+                                    <ListBox.ItemTemplate>
+                                        <DataTemplate>
+                                            <StackPanel Orientation="Horizontal">
+                                                <TextBlock Text="{Binding Name}" FontFamily="{StaticResource MonoFont}"/>
+                                                <TextBlock Margin="8,0,0,0" Opacity="0.6">
+                                                    <Run Text="("/><Run Text="{Binding Size, StringFormat=N0}"/><Run Text=" Б)"/>
+                                                </TextBlock>
+                                            </StackPanel>
+                                        </DataTemplate>
+                                    </ListBox.ItemTemplate>
+                                </ListBox>
+                                <StackPanel Grid.Row="3" Orientation="Horizontal" Margin="0,8,0,0">
+                                    <Button Command="{Binding DownloadFirmwareCommand}" Padding="12,4">
+                                        <StackPanel Orientation="Horizontal">
+                                            <ui:SymbolIcon Symbol="Download" Margin="0,0,6,0"/>
+                                            <TextBlock Text="Скачать"/>
+                                        </StackPanel>
+                                    </Button>
+                                    <ProgressBar Width="160" Height="6" Margin="12,0,0,0" VerticalAlignment="Center"
+                                                 Value="{Binding DownloadProgress}" Maximum="100"/>
+                                </StackPanel>
+                            </Grid>
+                        </TabItem>
+
+                        <TabItem Header="{loc:LocalizedString Flasher.Source.Profile}">
+                            <ListBox ItemsSource="{Binding BoardProfiles}" SelectedItem="{Binding SelectedProfile}"
+                                     Margin="8" MaxHeight="220">
+                                <ListBox.ItemTemplate>
+                                    <DataTemplate DataType="{x:Type core:BoardProfile}">
+                                        <Grid Margin="0,4">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="Auto"/>
+                                            </Grid.ColumnDefinitions>
+                                            <StackPanel>
+                                                <TextBlock Text="{Binding HardwareName}" FontWeight="SemiBold"/>
+                                                <TextBlock Text="{Binding BuildFlag}" Opacity="0.6" FontSize="11"
+                                                           FontFamily="{StaticResource MonoFont}"/>
+                                            </StackPanel>
+                                            <TextBlock Grid.Column="1" Text="{Binding Chip}" VerticalAlignment="Center"
+                                                       Opacity="0.7"/>
+                                        </Grid>
+                                    </DataTemplate>
+                                </ListBox.ItemTemplate>
+                            </ListBox>
+                        </TabItem>
+                    </TabControl>
+                </StackPanel>
+            </Border>
+
+            <Border Grid.Row="1" Grid.Column="0" CornerRadius="12" Padding="16" Margin="0,0,12,12"
+                    Background="{DynamicResource SystemControlAcrylicElementBrush}">
+                <StackPanel>
+                    <StackPanel Orientation="Horizontal" Margin="0,0,0,12">
+                        <ui:SymbolIcon Symbol="Setting" Margin="0,0,8,0"/>
+                        <TextBlock Text="Параметры прошивки" FontSize="14" FontWeight="SemiBold"/>
+                    </StackPanel>
+
+                    <TextBlock Text="Метод записи" Margin="0,0,0,4"/>
+                    <ComboBox SelectedIndex="{Binding SelectedMethod, Converter={StaticResource EnumToInt}}" Margin="0,0,0,12">
+                        <ComboBoxItem Content="Через USB (esptool)"/>
+                        <ComboBoxItem Content="Через WiFi (Web OTA)"/>
+                        <ComboBoxItem Content="Через SD-карту"/>
+                    </ComboBox>
+
+                    <TextBlock Text="Режим" Margin="0,0,0,4"/>
+                    <ComboBox SelectedIndex="{Binding SelectedMode, Converter={StaticResource EnumToInt}}" Margin="0,0,0,12">
+                        <ComboBoxItem Content="Только приложение (OTA)"/>
+                        <ComboBoxItem Content="Полная прошивка (bootloader+part+ota+app)"/>
+                    </ComboBox>
+
+                    <TextBlock Text="Очистка" Margin="0,0,0,4"/>
+                    <ComboBox SelectedIndex="{Binding SelectedErase, Converter={StaticResource EnumToInt}}" Margin="0,0,0,12">
+                        <ComboBoxItem Content="Не стирать"/>
+                        <ComboBoxItem Content="Только приложение"/>
+                        <ComboBoxItem Content="Полная очистка"/>
+                    </ComboBox>
+                </StackPanel>
+            </Border>
+
+            <Border Grid.Row="1" Grid.Column="1" CornerRadius="12" Padding="0" Margin="6,0,0,12"
+                    Background="#CC101418">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
+                    <Border Padding="12,8" Background="#1AFFFFFF">
+                        <StackPanel Orientation="Horizontal">
+                            <ui:SymbolIcon Symbol="Document" Margin="0,0,6,0"/>
+                            <TextBlock Text="Лог" FontSize="13" FontWeight="SemiBold"/>
+                            <TextBlock Text="{Binding StatusMessage}" Margin="12,0,0,0"
+                                       VerticalAlignment="Center" Opacity="0.7" FontSize="11"/>
+                        </StackPanel>
+                    </Border>
+                    <ListBox Grid.Row="1" ItemsSource="{Binding Log}" Background="Transparent" BorderThickness="0"
+                             ScrollViewer.HorizontalScrollBarVisibility="Auto"
+                             FontFamily="{StaticResource MonoFont}" FontSize="12">
+                        <ListBox.ItemTemplate>
+                            <DataTemplate>
+                                <TextBlock Text="{Binding Display}" TextWrapping="Wrap"/>
+                            </DataTemplate>
+                        </ListBox.ItemTemplate>
+                    </ListBox>
+                </Grid>
+            </Border>
+        </Grid>
+
+        <Border Grid.Row="2" CornerRadius="12" Padding="16"
+                Background="{DynamicResource SystemControlAcrylicElementBrush}">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+
+                <StackPanel>
+                    <TextBlock Text="{Binding StatusMessage}" FontSize="14" FontWeight="SemiBold"/>
+                    <ProgressBar Height="6" Value="{Binding ProgressPercent}" Maximum="100" Margin="0,8,16,0"/>
+                </StackPanel>
+
+                <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                    <Button Command="{Binding CancelCommand}" Margin="0,0,8,0" Padding="20,10"
+                            Visibility="{Binding IsFlashing, Converter={StaticResource BoolToVis}}">
+                        <StackPanel Orientation="Horizontal">
+                            <ui:SymbolIcon Symbol="Cancel" Margin="0,0,6,0"/>
+                            <TextBlock Text="{loc:LocalizedString Flasher.Cancel}"/>
+                        </StackPanel>
+                    </Button>
+                    <Button Style="{StaticResource AccentButtonStyle}"
+                            Command="{Binding FlashCommand}"
+                            IsEnabled="{Binding IsFlashing, Converter={StaticResource InverseBool}}"
+                            Padding="32,10">
+                        <StackPanel Orientation="Horizontal">
+                            <ui:SymbolIcon Symbol="Download" Margin="0,0,8,0"/>
+                            <TextBlock Text="{loc:LocalizedString Flasher.Flash}" FontSize="16" FontWeight="Bold"/>
+                        </StackPanel>
+                    </Button>
+                </StackPanel>
+            </Grid>
+        </Border>
+    </Grid>
+</Page>
