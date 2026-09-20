@@ -33,8 +33,18 @@ public sealed partial class SettingsViewModel : ObservableObject
         EsptoolDescription = res.Description;
     }
 
-    [RelayCommand]
-    private void Save()
+    /// <summary>
+    /// Сохранить всё, включая текущие язык и тему (вызывается при их изменении в UI).
+    /// </summary>
+    public void SaveWith(string language, string theme)
+    {
+        var s = LoadCurrent();
+        s.Language = language;
+        s.Theme = theme;
+        _settings.Save(s);
+    }
+
+    private AppSettings LoadCurrent()
     {
         var s = new AppSettings
         {
@@ -44,7 +54,13 @@ public sealed partial class SettingsViewModel : ObservableObject
             DownloadDir = DownloadDir,
             AutoCheckUpdates = AutoCheckUpdates
         };
-        _settings.Save(s);
+        return s;
+    }
+
+    [RelayCommand]
+    private void Save()
+    {
+        _settings.Save(LoadCurrent());
     }
 
     [RelayCommand]

@@ -10,12 +10,12 @@ namespace MarauderStudio.ViewModels;
 
 /// <summary>
 /// ViewModel главной страницы. Управляет списком портов, подключением и live-данными Marauder.
+/// Синглтон: один на всё время жизни приложения, порт и таймер не дублируются.
 /// </summary>
-public sealed partial class DashboardViewModel : ObservableObject, IDisposable
+public sealed partial class DashboardViewModel : ObservableObject
 {
-    private readonly SerialPortService _serial = new();
+    private readonly SerialPortService _serial;
     private readonly DispatcherTimer _portScanner;
-    private bool _disposed;
 
     public ObservableCollection<PortDescriptor> AvailablePorts { get; } = new();
 
@@ -33,8 +33,9 @@ public sealed partial class DashboardViewModel : ObservableObject, IDisposable
     [ObservableProperty] private string _battery = "—";
     [ObservableProperty] private bool _hasDeviceInfo;
 
-    public DashboardViewModel()
+    public DashboardViewModel(SerialPortService serial)
     {
+        _serial = serial;
         _portScanner = new DispatcherTimer(DispatcherPriority.Background)
         {
             Interval = TimeSpan.FromSeconds(2)
@@ -46,6 +47,8 @@ public sealed partial class DashboardViewModel : ObservableObject, IDisposable
         _serial.PromptReceived  += OnSerialPrompt;
         _serial.Error           += OnSerialError;
 
+        // Если порт уже открыт (например, восстановление после перезапуска страницы) — отражаем состояние.
+        IsConnected = _serial.IsOpen;
         RefreshPorts();
     }
 
@@ -160,7 +163,8 @@ public sealed partial class DashboardViewModel : ObservableObject, IDisposable
 
     private void ApplyInfo(MarauderInfo info)
     {
-        HasDeviceInfo    = !info.IsEmpty(MarauderInfo.Empty);
+        HasDeviceInfo    = !string.IsNullOrEmpty(info.FirmwareVersion) ||
+                           !string.IsNullOrEmpty(info.Hardware);
         FirmwareVersion  = info.FirmwareVersion;
         Hardware         = info.Hardware;
         EspIdfVersion    = info.EspIdfVersion;
@@ -185,21 +189,15 @@ public sealed partial class DashboardViewModel : ObservableObject, IDisposable
     private void OnSerialError(Exception ex)
         => StatusMessage = $"Ошибка порта: {ex.Message}";
 
-    public void Dispose()
+    /// <summary>
+    /// Вызывается при закрытии приложения: останавливает таймер и отписывается от событий.
+    /// Порт закрывает AppHost.Shutdown().
+    /// </summary>
+    public void Shutdown()
     {
-        if (_disposed) return;
-        _disposed = true;
         _portScanner.Stop();
         _serial.LineReceived   -= OnSerialLine;
         _serial.PromptReceived -= OnSerialPrompt;
         _serial.Error          -= OnSerialError;
-        _serial.DisposeAsync().AsTask().GetAwaiter().GetResult();
     }
-}
-
-internal static class MarauderInfoEmptyExtensions
-{
-    public static bool IsEmpty(this MarauderInfo info, MarauderInfo empty)
-        => string.IsNullOrEmpty(info.FirmwareVersion) &&
-           string.IsNullOrEmpty(info.Hardware);
 }

@@ -6,10 +6,6 @@
       xmlns:vm="clr-namespace:MarauderStudio.ViewModels"
       Title="{loc:LocalizedString Nav.Device}">
 
-    <Page.DataContext>
-        <vm:DeviceViewModel/>
-    </Page.DataContext>
-
     <Grid Margin="24">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
@@ -57,7 +53,7 @@
                         Background="{DynamicResource SystemControlAcrylicElementBrush}">
                     <StackPanel>
                         <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
-                            <ui:SymbolIcon Symbol="Important" Margin="0,0,8,0"/>
+                            <ui:SymbolIcon Symbol="Help" Margin="0,0,8,0"/>
                             <TextBlock Text="{loc:LocalizedString Device.Tab.Attack}" FontSize="14" FontWeight="SemiBold"/>
                         </StackPanel>
                         <ItemsControl ItemsSource="{Binding AttackPresets}">

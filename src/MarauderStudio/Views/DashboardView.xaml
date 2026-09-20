@@ -6,10 +6,6 @@
       xmlns:vm="clr-namespace:MarauderStudio.ViewModels"
       Title="{loc:LocalizedString Nav.Dashboard}">
 
-    <Page.DataContext>
-        <vm:DashboardViewModel/>
-    </Page.DataContext>
-
     <Grid Margin="24">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
@@ -63,7 +59,7 @@
                             Command="{Binding ConnectCommand}"
                             Padding="16,8">
                         <StackPanel Orientation="Horizontal">
-                            <ui:SymbolIcon Symbol="Connect" Margin="0,0,8,0"/>
+                            <ui:SymbolIcon Symbol="Link" Margin="0,0,8,0"/>
                             <TextBlock Text="{loc:LocalizedString Dashboard.Connect}"/>
                         </StackPanel>
                     </Button>
@@ -71,7 +67,7 @@
                             Visibility="{Binding IsConnected, Converter={StaticResource BoolToVis}}"
                             Margin="8,0,0,0" Padding="16,8">
                         <StackPanel Orientation="Horizontal">
-                            <ui:SymbolIcon Symbol="Disconnect" Margin="0,0,8,0"/>
+                            <ui:SymbolIcon Symbol="Cancel" Margin="0,0,8,0"/>
                             <TextBlock Text="Отключить"/>
                         </StackPanel>
                     </Button>
@@ -106,7 +102,7 @@
                     Background="{DynamicResource SystemControlAcrylicElementBrush}">
                 <StackPanel>
                     <StackPanel Orientation="Horizontal" Margin="0,0,0,12">
-                        <ui:SymbolIcon Symbol="Chip" Margin="0,0,8,0"/>
+                        <ui:SymbolIcon Symbol="Permissions" Margin="0,0,8,0"/>
                         <TextBlock Text="{loc:LocalizedString Dashboard.Chip}" FontSize="14" FontWeight="SemiBold"/>
                     </StackPanel>
                     <TextBlock Text="{Binding ChipName}" FontSize="20" FontWeight="SemiBold"/>

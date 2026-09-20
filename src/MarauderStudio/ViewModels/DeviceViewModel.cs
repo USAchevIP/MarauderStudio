@@ -7,10 +7,11 @@ namespace MarauderStudio.ViewModels;
 
 /// <summary>
 /// Панель команд Marauder: пресеты WiFi/Attacks/Sniff/BT/GPS.
+/// Использует общий SerialPortService — работает поверх соединения, открытого на Dashboard.
 /// </summary>
 public sealed partial class DeviceViewModel : ObservableObject
 {
-    private readonly SerialPortService _serial = new();
+    private readonly SerialPortService _serial;
 
     public ObservableCollection<CommandPreset> WifiPresets { get; } = new();
     public ObservableCollection<CommandPreset> AttackPresets { get; } = new();
@@ -20,9 +21,12 @@ public sealed partial class DeviceViewModel : ObservableObject
 
     [ObservableProperty] private string _lastCommand = "—";
     [ObservableProperty] private string _status = "Отключено";
+    [ObservableProperty] private bool _isConnected;
 
-    public DeviceViewModel()
+    public DeviceViewModel(SerialPortService serial)
     {
+        _serial = serial;
+
         WifiPresets.Add(new CommandPreset("Сканировать AP", "scanap", "Wifi"));
         WifiPresets.Add(new CommandPreset("Сканировать станции", "scansta", "Wifi"));
         WifiPresets.Add(new CommandPreset("Выбрать AP", "select -a", "Wifi"));
@@ -51,21 +55,27 @@ public sealed partial class DeviceViewModel : ObservableObject
         GpsPresets.Add(new CommandPreset("Wardrive стоп", "wardrive -x", "GPS"));
 
         _serial.LineReceived += line =>
-            System.Windows.Application.Current?.Dispatcher.Invoke(() =>
-            {
-                LastCommand = line;
-            });
+            System.Windows.Application.Current?.Dispatcher.BeginInvoke(() =>
+                LastCommand = line);
+
+        // Отражаем состояние общего соединения.
+        IsConnected = _serial.IsOpen;
+        Status = _serial.IsOpen ? $"Подключено к {_serial.CurrentPort}" : "Подключитесь на вкладке «Главная»";
     }
 
     [RelayCommand]
-    private void Execute(CommandPreset preset)
+    private void Execute(CommandPreset? preset)
     {
         if (preset is null) return;
+        if (!_serial.IsOpen)
+        {
+            Status = "Нет подключения. Подключитесь на вкладке «Главная».";
+            return;
+        }
         _serial.SendCommand(preset.Command);
         LastCommand = preset.Command;
+        Status = $"Отправлено: {preset.Command}";
     }
-
-    public void ConnectPort(string port) => _ = _serial.OpenAsync(port);
 }
 
 public sealed record CommandPreset(string Title, string Command, string Category)

@@ -6,10 +6,6 @@
       xmlns:vm="clr-namespace:MarauderStudio.ViewModels"
       Title="{loc:LocalizedString Nav.Settings}">
 
-    <Page.DataContext>
-        <vm:SettingsViewModel/>
-    </Page.DataContext>
-
     <Grid Margin="24">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>

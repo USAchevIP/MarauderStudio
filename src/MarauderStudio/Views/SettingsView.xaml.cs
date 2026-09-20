@@ -22,7 +22,9 @@ public partial class SettingsView : Page
                 break;
             }
         }
-        var themeName = ThemeManager.Current.ApplicationTheme?.ToString().ToLowerInvariant() ?? "system";
+        var themeName = ThemeManager.Current.ApplicationTheme == ApplicationTheme.Dark ? "dark"
+            : ThemeManager.Current.ApplicationTheme == ApplicationTheme.Light ? "light"
+            : "system";
         foreach (var item in ThemeCombo.Items.OfType<ComboBoxItem>())
         {
             if (item.Tag is string tag && tag == themeName)
@@ -38,11 +40,7 @@ public partial class SettingsView : Page
         if (LanguageCombo.SelectedItem is ComboBoxItem item && item.Tag is string lang)
         {
             LocalizationService.CurrentLanguage = lang;
-            // Обновляем ViewModel
-            if (DataContext is SettingsViewModel vm)
-            {
-                vm.GetType(); // noop
-            }
+            Persist();
         }
     }
 
@@ -55,5 +53,18 @@ public partial class SettingsView : Page
             "light"  => ApplicationTheme.Light,
             _        => null
         };
+        Persist();
+    }
+
+    private void Persist()
+    {
+        if (DataContext is SettingsViewModel vm)
+        {
+            var lang = LocalizationService.CurrentLanguage;
+            var theme = ThemeManager.Current.ApplicationTheme == ApplicationTheme.Dark ? "dark"
+                : ThemeManager.Current.ApplicationTheme == ApplicationTheme.Light ? "light"
+                : "system";
+            vm.SaveWith(lang, theme);
+        }
     }
 }

@@ -6,10 +6,6 @@
       xmlns:vm="clr-namespace:MarauderStudio.ViewModels"
       Title="{loc:LocalizedString Nav.Monitor}">
 
-    <Page.DataContext>
-        <vm:MonitorViewModel/>
-    </Page.DataContext>
-
     <Grid Margin="24">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
@@ -30,14 +26,14 @@
                 <Button Command="{Binding ConnectCommand}" Margin="0,0,8,0" Padding="14,6"
                         Visibility="{Binding IsConnected, Converter={StaticResource InverseBool}}">
                     <StackPanel Orientation="Horizontal">
-                        <ui:SymbolIcon Symbol="Connect" Margin="0,0,6,0"/>
+                        <ui:SymbolIcon Symbol="Link" Margin="0,0,6,0"/>
                         <TextBlock Text="Подключить"/>
                     </StackPanel>
                 </Button>
                 <Button Command="{Binding DisconnectCommand}" Margin="0,0,8,0" Padding="14,6"
                         Visibility="{Binding IsConnected, Converter={StaticResource BoolToVis}}">
                     <StackPanel Orientation="Horizontal">
-                        <ui:SymbolIcon Symbol="Disconnect" Margin="0,0,6,0"/>
+                        <ui:SymbolIcon Symbol="Cancel" Margin="0,0,6,0"/>
                         <TextBlock Text="Отключить"/>
                     </StackPanel>
                 </Button>

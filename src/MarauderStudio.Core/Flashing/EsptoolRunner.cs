@@ -6,15 +6,17 @@ namespace MarauderStudio.Core.Flashing;
 
 /// <summary>
 /// Запуск esptool.exe и парсинг его вывода.
-/// Принимает путь к бинарнику esptool, позволяет запускать любые esptool-команды.
+/// Поддерживает прямой бинарник и запуск через python (prefixArgs = ["-m", "esptool"]).
 /// </summary>
 public sealed class EsptoolRunner
 {
     private readonly string _esptoolPath;
+    private readonly string[] _prefixArgs;
 
-    public EsptoolRunner(string esptoolPath)
+    public EsptoolRunner(string esptoolPath, string[]? prefixArgs = null)
     {
         _esptoolPath = esptoolPath;
+        _prefixArgs = prefixArgs ?? Array.Empty<string>();
     }
 
     public string EsptoolPath => _esptoolPath;
@@ -36,6 +38,8 @@ public sealed class EsptoolRunner
             StandardOutputEncoding = Encoding.UTF8,
             StandardErrorEncoding = Encoding.UTF8,
         };
+        foreach (var a in _prefixArgs)
+            psi.ArgumentList.Add(a);
         foreach (var a in args)
             psi.ArgumentList.Add(a);
         if (environmentOverrides is not null)

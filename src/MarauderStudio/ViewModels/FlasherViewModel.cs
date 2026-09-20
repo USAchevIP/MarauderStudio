@@ -6,6 +6,7 @@ using MarauderStudio.Core.Common;
 using MarauderStudio.Core.Devices;
 using MarauderStudio.Core.Firmware;
 using MarauderStudio.Core.Flashing;
+using MarauderStudio.Core.Serial;
 
 namespace MarauderStudio.ViewModels;
 
@@ -13,10 +14,11 @@ namespace MarauderStudio.ViewModels;
 /// ViewModel экрана прошивки. Поддерживает три источника .bin (файл, GitHub, профиль)
 /// и три метода (esptool USB, Web OTA, SD).
 /// </summary>
-public sealed partial class FlasherViewModel : ObservableObject, IDisposable
+public sealed partial class FlasherViewModel : ObservableObject
 {
     private readonly GitHubReleasesClient _gh;
     private readonly SettingsService _settings;
+    private readonly SerialPortService _serial;
     private CancellationTokenSource? _cts;
 
     public ObservableCollection<MarauderRelease> Releases { get; } = new();
@@ -24,7 +26,6 @@ public sealed partial class FlasherViewModel : ObservableObject, IDisposable
     public ObservableCollection<BoardProfile> BoardProfiles { get; } = new(BoardDatabase.All);
     public ObservableCollection<LogLine> Log { get; } = new();
 
-    // Selected firmware source
     [ObservableProperty] private int _sourceTabIndex; // 0=File, 1=GitHub, 2=Profile
     [ObservableProperty] private string? _filePath;
     [ObservableProperty] private long _fileSize;
@@ -44,16 +45,16 @@ public sealed partial class FlasherViewModel : ObservableObject, IDisposable
     [ObservableProperty] private FlashEraseMode _selectedErase = FlashEraseMode.None;
 
     // Live state
-    [ObservableProperty] private bool _isBusy;
     [ObservableProperty] private bool _isFlashing;
     [ObservableProperty] private int _progressPercent;
     [ObservableProperty] private string _stage = "idle";
     [ObservableProperty] private string _statusMessage = "Готов";
 
-    public FlasherViewModel(GitHubReleasesClient gh, SettingsService settings)
+    public FlasherViewModel(GitHubReleasesClient gh, SettingsService settings, SerialPortService serial)
     {
         _gh = gh;
         _settings = settings;
+        _serial = serial;
     }
 
     [RelayCommand]
@@ -116,10 +117,11 @@ public sealed partial class FlasherViewModel : ObservableObject, IDisposable
         try
         {
             await _gh.DownloadAsync(SelectedAsset, dest,
-                new Progress<double>(p => DownloadProgress = p * 100), default);
+                new Progress<double>(p => DownloadProgress = p * 100));
             FilePath = dest;
             var fi = new FileInfo(dest);
             FileSize = fi.Length;
+            SourceTabIndex = 0; // переключаем на вкладку файла, где виден путь
             StatusMessage = $"Скачано: {Path.GetFileName(dest)} ({fi.Length / 1024} КБ)";
         }
         catch (Exception ex)
@@ -134,7 +136,7 @@ public sealed partial class FlasherViewModel : ObservableObject, IDisposable
         if (string.IsNullOrEmpty(path) || !File.Exists(path)) return;
         FilePath = path;
         FileSize = new FileInfo(path).Length;
-        StatusMessage = $"Файл: {Path.GetFileName(path)}";
+        StatusMessage = $"Файл: {Path.GetFileName(path)} ({FileSize / 1024} КБ)";
     }
 
     [RelayCommand]
@@ -147,35 +149,102 @@ public sealed partial class FlasherViewModel : ObservableObject, IDisposable
         }
         if (IsFlashing) return;
 
+        switch (SelectedMethod)
+        {
+            case FlashMethod.Usb:
+                await FlashUsbAsync();
+                break;
+            case FlashMethod.Ota:
+                await FlashOtaAsync();
+                break;
+            case FlashMethod.Sd:
+                StatusMessage = "SD: скопируйте файл как update.bin в корень SD, затем на устройстве выполните 'update -s'";
+                Log.Add(new LogLine(DateTime.Now, "INFO", "SD Update: переименуйте .bin в update.bin и поместите в корень SD-карты."));
+                Log.Add(new LogLine(DateTime.Now, "INFO", "Затем на устройстве: Device > Update Firmware > SD Update, или команда 'update -s'."));
+                break;
+        }
+    }
+
+    private async Task FlashUsbAsync()
+    {
+        if (_serial.IsOpen)
+        {
+            StatusMessage = "Порт занят монитором. Отключитесь на вкладке «Главная» и повторите.";
+            Log.Add(new LogLine(DateTime.Now, "WARN", "esptool не может работать, пока COM-порт открыт приложением."));
+            return;
+        }
+
         var settings = _settings.Load();
         var esptool = EsptoolResolver.Resolve(settings.EsptoolPath);
         if (!esptool.Available)
         {
             StatusMessage = "esptool не найден. Укажите путь в Настройках или установите esptool в Python.";
+            Log.Add(new LogLine(DateTime.Now, "ERROR", "esptool не найден."));
+            return;
+        }
+
+        // Порт для прошивки: приоритет — выбранный на Dashboard, иначе первый доступный.
+        var ports = PortEnumerator.GetPorts();
+        if (ports.Count == 0)
+        {
+            StatusMessage = "COM-порты не найдены. Подключите устройство по USB.";
             return;
         }
 
         IsFlashing = true;
         ProgressPercent = 0;
         Stage = "init";
-        Log.Clear();
         _cts = new CancellationTokenSource();
 
         try
         {
-            // Для простоты: методы Usb / Ota / Sd выбирают orchestrator.
-            if (SelectedMethod == FlashMethod.Usb)
+            Log.Add(new LogLine(DateTime.Now, "INFO", $"esptool: {esptool.Description}"));
+            Log.Add(new LogLine(DateTime.Now, "INFO", $"Файл: {FilePath}"));
+
+            var meta = FirmwareMetadata.TryParse(FilePath!);
+            if (meta is not null)
+                Log.Add(new LogLine(DateTime.Now, "INFO", $"Метаданные: {meta.Hardware} / {meta.Chip}"));
+            else
+                Log.Add(new LogLine(DateTime.Now, "WARN", "Метаданные MRDRFWID не найдены — прошивка без валидации платы."));
+
+            var request = new FlashRequest(
+                Port: ports[0].Port,
+                Chip: ChipFamily.Unknown, // esptool определит сам (--chip auto)
+                AppBinPath: FilePath!,
+                FullFlashSegments: null,
+                EraseMode: SelectedErase);
+
+            // Для системного Python esptool запускается как "python -m esptool …".
+            var prefixArgs = esptool.Source == EsptoolSource.SystemPython
+                ? new[] { "-m", "esptool" }
+                : null;
+            var runner = new EsptoolRunner(esptool.Path, prefixArgs);
+
+            var orchestrator = new FlashOrchestrator(runner);
+            var progress = new Progress<FlashProgress>(p =>
             {
-                await FlashUsbAsync(esptool, settings, _cts.Token);
-            }
-            else if (SelectedMethod == FlashMethod.Ota)
+                ProgressPercent = p.Percent;
+                Stage = p.Stage;
+                if (!string.IsNullOrWhiteSpace(p.LogLine))
+                    Log.Add(new LogLine(DateTime.Now, "INFO", p.LogLine));
+            });
+
+            StatusMessage = "Прошивка…";
+            var result = await orchestrator.FlashAsync(request, progress, _cts.Token);
+            foreach (var line in result.Log.TakeLast(15))
+                Log.Add(new LogLine(DateTime.Now, result.Success ? "INFO" : "ERROR", line));
+
+            if (result.Success)
             {
-                StatusMessage = "Web OTA — реализация в следующих этапах";
-                // Здесь будет WebOtaUploader (Этап 11).
+                ProgressPercent = 100;
+                Stage = "done";
+                StatusMessage = "Готово ✓";
+                Log.Add(new LogLine(DateTime.Now, "INFO", "Прошивка успешно завершена."));
             }
             else
             {
-                StatusMessage = "SD Update: скопируйте файл как update.bin в корень SD, выполните 'update -s'";
+                Stage = "failed";
+                StatusMessage = $"Ошибка: {result.Message}";
             }
         }
         catch (Exception ex)
@@ -186,42 +255,65 @@ public sealed partial class FlasherViewModel : ObservableObject, IDisposable
         finally
         {
             IsFlashing = false;
+            _cts?.Dispose();
+            _cts = null;
         }
     }
 
-    private async Task FlashUsbAsync(EsptoolResolution esptool, AppSettings settings, CancellationToken ct)
+    private async Task FlashOtaAsync()
     {
-        // Сейчас нет подключённого устройства из DashboardViewModel — оставим заглушку с инструкцией.
-        Log.Add(new LogLine(DateTime.Now, "INFO", $"Используем {esptool.Description}"));
-        Log.Add(new LogLine(DateTime.Now, "INFO", $"Файл: {FilePath}"));
+        var settings = _settings.Load();
+        var ssid = settings.OtaSsid;
 
-        var meta = FirmwareMetadata.TryParse(FilePath!);
-        if (meta is not null)
+        if (!WifiConnector.IsConnected(ssid))
         {
-            Log.Add(new LogLine(DateTime.Now, "INFO",
-                $"Метаданные: {meta.Hardware} / {meta.Chip}"));
-        }
-        else
-        {
-            Log.Add(new LogLine(DateTime.Now, "WARN",
-                "Метаданные MRDRFWID не найдены — файл может быть нестандартным"));
+            StatusMessage = $"Подключитесь к WiFi «{ssid}» (пароль: {settings.OtaPassword}) и повторите.";
+            Log.Add(new LogLine(DateTime.Now, "WARN", $"WiFi «{ssid}» не подключён."));
+            Log.Add(new LogLine(DateTime.Now, "INFO", "На устройстве: Device > Update Firmware > Web Update, затем подключитесь к AP MarauderOTA."));
+            return;
         }
 
-        StatusMessage = "Подключите устройство и выберите его на вкладке Главная";
-        Log.Add(new LogLine(DateTime.Now, "INFO",
-            "Используйте Главную для подключения по USB — после подключения нажмите FLASH здесь"));
+        IsFlashing = true;
+        ProgressPercent = 0;
+        Stage = "ota";
+        try
+        {
+            var uploader = new WebOtaUploader();
+            var progress = new Progress<double>(p =>
+            {
+                ProgressPercent = (int)(p * 100);
+            });
+            StatusMessage = "Загрузка на устройство по OTA…";
+            var result = await uploader.UploadAsync(FilePath!, progress);
+            if (result.Success)
+            {
+                ProgressPercent = 100;
+                Stage = "done";
+                StatusMessage = "Готово ✓ (устройство перезагружается)";
+                Log.Add(new LogLine(DateTime.Now, "INFO", "Web OTA: прошивка принята, устройство перезагружается."));
+            }
+            else
+            {
+                Stage = "failed";
+                StatusMessage = $"OTA ошибка: {result.Message}";
+                Log.Add(new LogLine(DateTime.Now, "ERROR", result.Message));
+            }
+        }
+        catch (Exception ex)
+        {
+            StatusMessage = $"Ошибка: {ex.Message}";
+        }
+        finally
+        {
+            IsFlashing = false;
+        }
     }
 
     [RelayCommand]
     private void Cancel()
     {
         _cts?.Cancel();
-    }
-
-    public void Dispose()
-    {
-        _cts?.Cancel();
-        _cts?.Dispose();
+        StatusMessage = "Отмена…";
     }
 }
 
